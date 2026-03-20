@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>젤다의 전설 — 타임라인</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Noto Sans KR', sans-serif;
+  background: #f2efe8; color: #2a2520;
+  font-size: 16px; line-height: 1.7;
+  word-break: keep-all; overflow-wrap: break-word;
+}
+
+/* ── 헤더 ── */
+header {
+  background: #fff; border-bottom: 2px solid #e5ddd0;
+  padding: 32px 20px 26px; text-align: center;
+}
+.eyebrow { font-size: 11px; color: #b8b0a0; letter-spacing: .18em; text-transform: uppercase; margin-bottom: 12px; }
+h1 { font-family: 'Cinzel', serif; font-size: 28px; font-weight: 700; color: #1c1810; margin-bottom: 8px; line-height: 1.25; }
+.header-sub { font-size: 14px; color: #9a9080; }
+.pc-link {
+  display: inline-block; margin-top: 14px;
+  font-size: 12px; color: #b0a898; text-decoration: none;
+  border: 1px solid #e0d8ce; border-radius: 100px;
+  padding: 5px 14px; background: #faf8f4;
+}
+
+/* ── 탭 ── */
+.tabs {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 8px; padding: 16px 14px 0;
+  background: #f2efe8; position: sticky; top: 0; z-index: 50;
+  border-bottom: 1px solid #e5ddd0;
+  padding-bottom: 14px;
+}
+.tab {
+  padding: 12px 8px; border-radius: 12px; border: 2px solid;
+  font-size: 14px; font-weight: 600; cursor: pointer;
+  font-family: 'Noto Sans KR', sans-serif;
+  background: #fff; text-align: center; transition: all .15s;
+  line-height: 1.3;
+}
+.t-tl  { border-color: #c0b8a8; color: #605850; }
+.t-tl.on  { background: #605850; color: #fff; }
+.t-cmn { border-color: #a8a098; color: #504840; }
+.t-cmn.on { background: #504840; color: #fff; }
+.t-p   { border-color: #9a8fd0; color: #5038a8; }
+.t-p.on   { background: #5038a8; color: #fff; }
+.t-c   { border-color: #58b898; color: #287860; }
+.t-c.on   { background: #287860; color: #fff; }
+.t-a   { border-color: #d0a858; color: #785018; }
+.t-a.on   { background: #785018; color: #fff; }
+.t-bc  { border-color: #d07860; color: #783818; }
+.t-bc.on  { background: #783818; color: #fff; }
+
+/* ── 패널 ── */
+.content { padding: 16px 14px 100px; }
+.panel { display: none; }
+.panel.on { display: block; animation: fi .2s ease; }
+@keyframes fi { from { opacity:0; transform:translateY(5px) } to { opacity:1; transform:none } }
+
+/* ── 전체 타임라인 (모바일용 세로 단순) ── */
+.tl-section { margin-bottom: 24px; }
+.tl-section-title {
+  font-size: 13px; font-weight: 700; color: #a09880;
+  letter-spacing: .08em; text-transform: uppercase;
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 12px;
+}
+.tl-section-title::before, .tl-section-title::after {
+  content: ''; flex: 1; height: 1px; background: #e4ddd2;
+}
+.tl-node {
+  background: #fff; border-radius: 12px; border: 1.5px solid;
+  padding: 14px 16px; margin-bottom: 8px;
+  cursor: pointer; transition: transform .12s, box-shadow .12s;
+  display: flex; align-items: center; gap: 12px;
+}
+.tl-node:active { transform: scale(.98); }
+.tl-node:hover { box-shadow: 0 4px 14px rgba(0,0,0,.08); }
+.tl-node-icon { font-size: 24px; flex-shrink: 0; }
+.tl-node-text { flex: 1; }
+.tl-node-name { font-size: 16px; font-weight: 700; display: block; }
+.tl-node-en { font-size: 12px; opacity: .7; margin-top: 2px; display: block; }
+.tl-node-arr { font-size: 16px; color: #c0b8a8; flex-shrink: 0; }
+
+.n-gray  { background: #f6f4f0; border-color: #d0c8bc; }
+.n-gray  .tl-node-name { color: #3a3530; }
+.n-blue  { background: #e6f0fc; border-color: #68a8d8; border-width: 2px; }
+.n-blue  .tl-node-name { color: #1a4878; }
+.n-purple { background: #edebff; border-color: #9a8fd0; }
+.n-purple .tl-node-name { color: #38288a; }
+.n-green  { background: #e6f7f0; border-color: #58b898; }
+.n-green  .tl-node-name { color: #1a5a40; }
+.n-amber  { background: #fdf5e2; border-color: #d0a858; }
+.n-amber  .tl-node-name { color: #583810; }
+.n-coral  { background: #fef2ee; border-color: #d07860; }
+.n-coral  .tl-node-name { color: #582810; }
+
+.tl-hint {
+  font-size: 12px; color: #b8b0a0; text-align: center;
+  margin: 0 0 14px; letter-spacing: .03em;
+}
+.tl-branch-badge {
+  display: inline-block; font-size: 11px; font-weight: 700;
+  padding: 3px 10px; border-radius: 100px; border: 1.5px solid;
+  margin-bottom: 12px;
+}
+.bd-p  { background: #edebff; border-color: #9a8fd0; color: #5038a8; }
+.bd-c  { background: #e6f7f0; border-color: #58b898; color: #287860; }
+.bd-a  { background: #fdf5e2; border-color: #d0a858; color: #785018; }
+.bd-bc { background: #fef2ee; border-color: #d07860; color: #783818; }
+
+/* ── 분기 화살표 박스 ── */
+.tl-split {
+  background: #e8f0fa; border: 1.5px solid #b0cce8;
+  border-radius: 12px; padding: 14px 16px; margin: 12px 0 20px;
+  font-size: 13px; color: #385880; line-height: 1.7;
+}
+.tl-split strong { color: #1a4878; }
+
+/* ── 히어로 ── */
+.hero {
+  border-radius: 16px; border: 1.5px solid;
+  padding: 20px 18px; margin-bottom: 18px;
+}
+.hero-p  { background: #f4f1ff; border-color: #c8bcf0; }
+.hero-c  { background: #eef9f5; border-color: #a0d8c4; }
+.hero-a  { background: #fef9ee; border-color: #e8cc90; }
+.hero-bc { background: #fef4f0; border-color: #e8b098; }
+.hero-cmn { background: #f6f4f0; border-color: #d0c8bc; }
+.badge {
+  display: inline-block; font-size: 12px; font-weight: 700;
+  padding: 4px 14px; border-radius: 100px; margin-bottom: 12px;
+  letter-spacing: .06em; border: 1.5px solid;
+}
+.bd-cmn { background: #edeae4; border-color: #c0b8a8; color: #504840; }
+.hero-title { font-family: 'Cinzel', serif; font-size: 18px; color: #1c1810; margin-bottom: 10px; line-height: 1.4; }
+.hero-desc { font-size: 14px; color: #504840; line-height: 1.85; }
+.hero-desc strong { color: #1c1810; }
+
+/* ── 게임 카드 (모바일 심플) ── */
+.mcards { display: flex; flex-direction: column; gap: 14px; }
+
+.mcard {
+  background: #fff; border-radius: 14px;
+  border: 1px solid #e5ddd0; overflow: hidden;
+}
+
+/* 나무위키 배너 */
+.mcard-namu {
+  display: block; width: 100%; text-align: center;
+  background: #eaf6d8; border-bottom: 1.5px solid #a8d068;
+  color: #3d6b1a; font-size: 13px; font-weight: 700;
+  padding: 9px 16px; text-decoration: none;
+  letter-spacing: .04em;
+}
+.mcard-namu:hover { background: #d8f0b8; }
+
+/* 카드 헤더 */
+.mcard-head {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 16px; cursor: pointer;
+  border-bottom: 1px solid #f0ece4;
+}
+.mcard-icon { font-size: 28px; flex-shrink: 0; }
+.mcard-info { flex: 1; min-width: 0; }
+.mcard-title { font-size: 18px; font-weight: 700; color: #1c1810; display: block; }
+.mcard-en { font-size: 12px; color: #a09888; margin-top: 2px; display: block; }
+.mcard-toggle { font-size: 16px; color: #c0b8a8; flex-shrink: 0; transition: transform .2s; }
+.mcard.open .mcard-toggle { transform: rotate(180deg); }
+
+/* 태그 줄 */
+.mcard-tags {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  padding: 10px 16px; background: #faf8f4;
+  border-bottom: 1px solid #f0ece4;
+}
+.mcard-plat {
+  font-size: 12px; padding: 4px 10px; border-radius: 7px;
+  background: #f0ede6; border: 1px solid #e4ddd2; color: #7a7260;
+}
+.mcard-tag {
+  font-size: 12px; padding: 4px 10px; border-radius: 7px; border: 1.5px solid;
+  font-weight: 600;
+}
+.mt-p  { color: #5038a8; border-color: #c8bcf0; background: #f4f1ff; }
+.mt-c  { color: #287860; border-color: #a0d8c4; background: #eef9f5; }
+.mt-a  { color: #785018; border-color: #e8cc90; background: #fef9ee; }
+.mt-bc { color: #783818; border-color: #e8b098; background: #fef4f0; }
+.mt-cmn { color: #504840; border-color: #d0c8bc; background: #f6f4f0; }
+
+/* 카드 본문 (펼침) */
+.mcard-body { display: none; padding: 16px; }
+.mcard.open .mcard-body { display: block; }
+.mcard-desc { font-size: 14px; color: #4a4538; line-height: 1.85; margin-bottom: 14px; }
+.mcard-pts-title {
+  font-size: 11px; font-weight: 700; color: #a09880;
+  letter-spacing: .08em; text-transform: uppercase;
+  display: flex; align-items: center; gap: 10px; margin-bottom: 12px;
+}
+.mcard-pts-title::before, .mcard-pts-title::after {
+  content:''; flex:1; height:1px; background:#e4ddd2;
+}
+.mcard-pts { display: flex; flex-direction: column; gap: 9px; }
+.mcard-pt {
+  display: flex; align-items: flex-start; gap: 9px;
+  font-size: 13px; color: #58504a; line-height: 1.75;
+}
+.mcard-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  flex-shrink: 0; margin-top: 7px;
+}
+.dot-p  { background: #9a8fd0; }
+.dot-c  { background: #58b898; }
+.dot-a  { background: #d0a858; }
+.dot-bc { background: #d07860; }
+.dot-cmn { background: #c0b8a8; }
+
+/* ── 고정 버튼 ── */
+#scroll-top {
+  position: fixed; bottom: 20px; right: 16px;
+  width: 46px; height: 46px; border-radius: 50%;
+  background: #fff; border: 1.5px solid #d8d0c4;
+  color: #5a5048; font-size: 18px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 14px rgba(0,0,0,.1);
+  opacity: 0; pointer-events: none;
+  transition: opacity .22s; z-index: 100;
+}
+#scroll-top.show { opacity: 1; pointer-events: auto; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Hyrule Historia · Nintendo Official</div>
+  <h1>The Legend of Zelda</h1>
+  <p class="header-sub">젤다의 전설 — 공식 타임라인 (2024 최신)</p>
+  <a class="pc-link" href="desktop.html">🖥️ PC 버전으로 보기</a>
+</header>
+
+<div class="tabs">
+  <button class="tab t-tl on" onclick="showTab('tl',this)">① 전체 타임라인</button>
+  <button class="tab t-cmn"   onclick="showTab('cmn',this)">② 공통 시열대</button>
+  <button class="tab t-p"    onclick="showTab('p',this)">③ 용사 패배</button>
+  <button class="tab t-c"    onclick="showTab('c',this)">④ 어린이</button>
+  <button class="tab t-a"    onclick="showTab('a',this)">⑤ 어른</button>
+  <button class="tab t-bc"   onclick="showTab('bc',this)">⑥ 야숨·왕눈</button>
+</div>
+
+<div class="content">
+
+<!-- ① 전체 타임라인 -->
+<div class="panel on" id="panel-tl">
+  <p class="tl-hint">▼ 게임을 탭하면 해당 상세 탭으로 이동합니다</p>
+
+  <div class="tl-section-title">공통 시열대</div>
+  <div class="tl-node n-gray" onclick="goTab('cmn')">
+    <span class="tl-node-icon">🌤️</span>
+    <div class="tl-node-text">
+      <span class="tl-node-name">스카이워드 소드</span>
+      <span class="tl-node-en">Skyward Sword · 2011 · Wii/Switch</span>
+    </div>
+    <span class="tl-node-arr">›</span>
+  </div>
+  <div class="tl-node n-gray" onclick="goTab('cmn')">
+    <span class="tl-node-icon">🍄</span>
+    <div class="tl-node-text">
+      <span class="tl-node-name">이상한 모자</span>
+      <span class="tl-node-en">The Minish Cap · 2004 · GBA</span>
+    </div>
+    <span class="tl-node-arr">›</span>
+  </div>
+  <div class="tl-node n-gray" onclick="goTab('cmn')">
+    <span class="tl-node-icon">⚔️</span>
+    <div class="tl-node-text">
+      <span class="tl-node-name">포 소드</span>
+      <span class="tl-node-en">Four Swords · 2002 · GBA</span>
+    </div>
+    <span class="tl-node-arr">›</span>
+  </div>
+  <div class="tl-node n-blue" onclick="goTab('cmn')">
+    <span class="tl-node-icon">⭐</span>
+    <div class="tl-node-text">
+      <span class="tl-node-name">시간의 오카리나</span>
+      <span class="tl-node-en">Ocarina of Time · 1998 · N64 — 분기점</span>
+    </div>
+    <span class="tl-node-arr">›</span>
+  </div>
+
+  <div class="tl-split">
+    <strong>⭐ 여기서 3개의 타임라인으로 분기됩니다</strong><br>
+    💀 링크가 가논에게 패배 → 용사 패배 타임라인<br>
+    👦 링크가 이기고 어린 시절로 → 어린이 타임라인<br>
+    🌊 링크가 이겼지만 어른 세계에 영웅 없음 → 어른 타임라인
+  </div>
+
+  <div class="tl-section-title">💀 용사 패배 타임라인</div>
+  <div class="tl-node n-purple" onclick="goTab('p')"><span class="tl-node-icon">🗡️</span><div class="tl-node-text"><span class="tl-node-name">신들의 트라이포스</span><span class="tl-node-en">A Link to the Past · 1991</span></div><span class="tl-node-arr">›</span></div>
+  <div class="tl-node n-purple" onclick="goTab('p')"><span class="tl-node-icon">🧱</span><div class="tl-node-text"><span class="tl-node-name">신들의 트라이포스 2</span><span class="tl-node-en">A Link Between Worlds · 2013</span></div><span class="tl-node-arr">›</span></div>
+  <div class="tl-node n-purple" onclick="goTab('p')"><span class="tl-node-icon">👥</span><div class="tl-node-text"><span class="tl-node-name">트라이포스 삼총사</span><span class="tl-node-en">Tri Force Heroes · 2015</span></div><span class="tl-node-arr">›</span></div>
+  <div class="tl-node n-purple" onclick="goTab('p')"><span class="tl-node-icon">✨</span><div class="tl-node-text"><span class="tl-node-name">지혜의 투영 ✦</span><span class="tl-node-en">Echoes of Wisdom · 2024</span></div><span class="tl-node-arr">›</span></div>
+  <div class="tl-node n-purple" onclick="goTab('p')"><span class="tl-node-icon">🔮</span><div class="tl-node-text"><span class="tl-node-name">이상한 나무열매 시리즈</span><span class="tl-node-en">Oracle of Ages/Seasons · 2001</span></div><span class="tl-node-arr">›</span></div>
+  <div class="tl-node n-purple" onclick="goTab('p')"><span class="tl-node-icon">🏝️</span><div class="tl-node-text"><span class="tl-node-name">꿈꾸는 섬</span><span class="tl-node-en">Link's Awakening · 1993</span></div><span class="tl-node-arr">›</span></div>
+  <div class="tl-node n-purple" onclick="goTab('p')"><span class="tl-node-icon">🏰</span><div class="tl-node-text"><span class="tl-node-name">젤다의 전설</span><span class="tl-node-en">The Legend of Zelda · 1986</span></div><span class="tl-node-arr">›</span></div>
+  <div class="tl-node n-purple" onclick="goTab('p')"><span class="tl-node-icon">💎</span><div class="tl-node-text"><span class="tl-node-name">링크의 모험</span><span class="tl-node-en">Adventure of Link · 1987</span></div><span class="tl-node-arr">›</span></div>
+
+  <div class="tl-section-title">👦 어린이 타임라인</div>
+  <div class="tl-node n-green" onclick="goTab('c')"><span class="tl-node-icon">🌕</span><div class="tl-node-text"><span class="tl-node-name">무쥬라의 가면</span><span class="tl-node-en">Majora's Mask · 2000</span></div><span class="tl-node-arr">›</span></div>
+  <div class="tl-node n-green" onclick="goTab('c')"><span class="tl-node-icon">🐺</span><div class="tl-node-text"><span class="tl-node-name">황혼의 공주</span><span class="tl-node-en">Twilight Princess · 2006</span></div><span class="tl-node-arr">›</span></div>
+  <div class="tl-node n-green" onclick="goTab('c')"><span class="tl-node-icon">⚔️</span><div class="tl-node-text"><span class="tl-node-name">포 소드 어드벤처스</span><span class="tl-node-en">Four Swords Adventures · 2004</span></div><span class="tl-node-arr">›</span></div>
+
+  <div class="tl-section-title">🌊 어른 타임라인</div>
+  <div class="tl-node n-amber" onclick="goTab('a')"><span class="tl-node-icon">⛵</span><div class="tl-node-text"><span class="tl-node-name">바람의 지휘봉</span><span class="tl-node-en">The Wind Waker · 2002</span></div><span class="tl-node-arr">›</span></div>
+  <div class="tl-node n-amber" onclick="goTab('a')"><span class="tl-node-icon">⏳</span><div class="tl-node-text"><span class="tl-node-name">몽환의 모래시계</span><span class="tl-node-en">Phantom Hourglass · 2007</span></div><span class="tl-node-arr">›</span></div>
+  <div class="tl-node n-amber" onclick="goTab('a')"><span class="tl-node-icon">🚂</span><div class="tl-node-text"><span class="tl-node-name">대지의 기적</span><span class="tl-node-en">Spirit Tracks · 2009</span></div><span class="tl-node-arr">›</span></div>
+
+  <div class="tl-section-title">🎮 야숨 · 왕눈 (배치 미확정)</div>
+  <div class="tl-node n-coral" onclick="goTab('bc')"><span class="tl-node-icon">🌄</span><div class="tl-node-text"><span class="tl-node-name">브레스 오브 더 와일드</span><span class="tl-node-en">Breath of the Wild · 2017</span></div><span class="tl-node-arr">›</span></div>
+  <div class="tl-node n-coral" onclick="goTab('bc')"><span class="tl-node-icon">👁️</span><div class="tl-node-text"><span class="tl-node-name">티어스 오브 더 킹덤</span><span class="tl-node-en">Tears of the Kingdom · 2023</span></div><span class="tl-node-arr">›</span></div>
+</div>
+
+<!-- ② 공통 시열대 -->
+<div class="panel" id="panel-cmn">
+  <div class="hero hero-cmn">
+    <div class="badge bd-cmn">공통 시열대</div>
+    <div class="hero-title">모든 타임라인의 공통 뿌리</div>
+    <div class="hero-desc">스카이워드 소드부터 시간의 오카리나까지, 모든 분기 이전의 공통 역사입니다. 마스터 소드·트라이포스·가논 저주의 기원이 모두 이 시기에 만들어집니다.</div>
+  </div>
+  <div class="mcards" id="cards-cmn"></div>
+</div>
+
+<!-- ③ 용사 패배 -->
+<div class="panel" id="panel-p">
+  <div class="hero hero-p">
+    <div class="badge bd-p">용사 패배 타임라인</div>
+    <div class="hero-title">링크가 가논에게 진 세계</div>
+    <div class="hero-desc">시간의 오카리나에서 링크가 패배하는 경우 생겨나는 분기. 8개 작품이 속한 가장 많은 분기입니다. 2011년 하이럴 히스토리아 공개 전까지 존재 자체가 알려지지 않았던 숨겨진 분기였습니다.</div>
+  </div>
+  <div class="mcards" id="cards-p"></div>
+</div>
+
+<!-- ④ 어린이 -->
+<div class="panel" id="panel-c">
+  <div class="hero hero-c">
+    <div class="badge bd-c">어린이 타임라인</div>
+    <div class="hero-title">링크가 이기고 어린 시절로 돌아온 세계</div>
+    <div class="hero-desc">가논을 무찌른 링크가 젤다의 힘으로 7년 전 어린 시절로 돌아갑니다. 어린 링크는 가논돌프의 음모를 왕실에 미리 고발하지만, 가논돌프는 황혼 세계로 도망쳐 훗날 다시 위협합니다.</div>
+  </div>
+  <div class="mcards" id="cards-c"></div>
+</div>
+
+<!-- ⑤ 어른 -->
+<div class="panel" id="panel-a">
+  <div class="hero hero-a">
+    <div class="badge bd-a">어른 타임라인</div>
+    <div class="hero-title">대홍수로 하이럴이 수몰된 세계</div>
+    <div class="hero-desc">링크 없는 어른 세계에서 가논이 재림하자, 여신들이 하이럴을 대홍수로 수몰시킵니다. 수백 년 후 세상은 광활한 바다가 되었고, 섬들만 남아 있습니다.</div>
+  </div>
+  <div class="mcards" id="cards-a"></div>
+</div>
+
+<!-- ⑥ 야숨·왕눈 -->
+<div class="panel" id="panel-bc">
+  <div class="hero hero-bc">
+    <div class="badge bd-bc">야생의 숨결 · 왕국의 눈물</div>
+    <div class="hero-title">세 타임라인의 끝 — 분기 공식 미확정</div>
+    <div class="hero-desc">닌텐도가 "세 분기 중 어느 한쪽의 끝"이라고만 확인했을 뿐, 어느 분기인지는 플레이어의 상상에 맡긴다고 밝혔습니다.</div>
+  </div>
+  <div class="mcards" id="cards-bc"></div>
+</div>
+
+</div><!-- /content -->
+
+<button id="scroll-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="맨 위로">↑</button>
+
+<script>
+var CMN_DATA = [
+  { num:1, cls:'cmn', icon:'🌤️',
+    title:'스카이워드 소드', en:'Skyward Sword',
+    plat:'2011 · Wii / 2021 HD · Nintendo Switch', tag:'공통 시열대 ① — 시리즈 시간상 최초',
+    namu:'https://namu.wiki/w/%EC%A0%A4%EB%8B%A4%EC%9D%98%20%EC%A0%84%EC%84%A4%20%EC%8A%A4%EC%B9%B4%EC%9D%B4%EC%9B%8C%EB%93%9C%20%EC%86%8C%EB%93%9C',
+    desc:'젤다 시리즈 전체 역사의 진정한 시작점. 인류의 조상들이 하늘섬 스카이로프트에서 살던 고대 시대를 배경으로, 이 게임에서 마스터 소드·하이럴·트라이포스·가논의 저주 등 시리즈 모든 설정의 근원이 처음으로 만들어집니다. 링크와 젤다의 운명적 인연 역시 이 작품에서 처음 시작됩니다.',
+    points:[
+      '마스터 소드의 탄생 — 하늘의 여신 검이 파이(Fi)의 혼을 담아 마스터 소드로 완성되는 전 과정이 그려집니다',
+      '가논 저주의 기원 — 악의 화신 데미스가 패배하면서 "링크와 젤다의 혈통을 영원히 저주하겠다"고 선언. 이것이 가논돌프로 계속 환생하는 근원',
+      '트라이포스의 진짜 의미 — 세 여신이 세계를 만들고 남긴 황금의 유물. 지혜(나이루), 용기(파로루), 힘(딘)이 각각 젤다, 링크, 가논에게 깃드는 이유',
+      '하이럴 왕국의 건국 — 스카이로프트 사람들이 지상으로 내려와 하이럴 왕국을 세우는 시초',
+      'Wii 리모컨 1:1 모션 검 조작 — 2021년 Switch HD 버전에서 버튼 조작 옵션 추가. 메타크리틱 93점'
+    ]
+  },
+  { num:2, cls:'cmn', icon:'🍄',
+    title:'이상한 모자', en:'The Minish Cap (이상한 모자)',
+    plat:'2004 · Game Boy Advance', tag:'공통 시열대 ②',
+    namu:'https://namu.wiki/w/%EC%A0%A4%EB%8B%A4%EC%9D%98%20%EC%A0%84%EC%84%A4%20%EC%9D%B4%EC%83%81%ED%95%9C%20%EB%AA%A8%EC%9E%90',
+    desc:'스카이워드 소드 이후 수백~수천 년이 지난 하이럴. 소인족 피코리(미니시)가 인간 세계에 내려와 빛의 힘을 가져다준 전설이 배경입니다. 악마 바티가 처음 등장하며, 포 소드의 전신인 피코리의 검이 이 작품에서 만들어집니다. 캡콤이 개발한 GBA 전용 작품입니다.',
+    points:[
+      '바티의 첫 등장 — 마법 모자(미니시 캡)를 손에 넣은 겔드족 청년 바티가 강력한 악마로 변신. 이후 포 소드에서도 반복 등장하는 악역',
+      '링크 축소 시스템 — 미니시 캡을 쓰면 작은 피코리 크기로 줄어들어 가구 위, 풀숲, 물 위를 탐험하는 독창적인 시스템',
+      '포 소드의 전신 — 이 작품 마지막에 피코리의 검이 바티 봉인을 위한 포 소드로 다시 태어납니다',
+      '키네스톤(Kinstone) 연결 시스템 — NPC들과 조각을 맞춰 연결하는 서브 이벤트로 하이럴 곳곳이 변화',
+      '캡콤 개발의 마지막 메인 시리즈 — 이후 메인 시리즈는 닌텐도로 완전 귀환'
+    ]
+  },
+  { num:3, cls:'cmn', icon:'⚔️',
+    title:'포 소드', en:'Four Swords',
+    plat:'2002 · GBA (멀티플레이 전용)', tag:'공통 시열대 ③',
+    namu:'https://namu.wiki/w/%EC%A0%A4%EB%8B%A4%EC%9D%98%20%EC%A0%84%EC%84%A4%20%ED%8F%AC%20%EC%86%8C%EB%93%9C',
+    desc:'미니시 캡 이후, 포 소드로 봉인되었던 바티가 다시 봉인에서 탈출합니다. 링크가 포 소드를 뽑아 4명으로 분열되면서 바티를 무찌르고 다시 봉인합니다. 공통 시열대의 마지막 작품으로, 이후 시간의 오카리나로 넘어갑니다.',
+    points:[
+      '포 소드의 힘 — 검에서 몸이 4개로 분열되는 능력. 이후 포 소드 어드벤처스에서도 같은 원리가 사용됩니다',
+      '바티와의 악연 종결 — 미니시 캡부터 이어진 바티 이야기가 이 작품에서 일단락됩니다',
+      '젤다 시리즈 멀티플레이의 출발점 — GBA 2~4대를 연결하는 협력 플레이 게임',
+      '2011년 NDS 버전에서 한정 기간 무료 배포 — 솔로 플레이 모드 추가',
+      '공통 시열대 끝 — 이 작품 이후 시간의 오카리나로 넘어가며 타임라인이 시작됨'
+    ]
+  },
+  { num:4, cls:'cmn', icon:'⭐',
+    title:'시간의 오카리나 — 타임라인 분기점', en:'Ocarina of Time',
+    plat:'1998 · N64 / 2011 3DS / 2021 Switch Online', tag:'공통 시열대 ④ — 분기점',
+    namu:'https://namu.wiki/w/%EC%A0%A4%EB%8B%A4%EC%9D%98%20%EC%A0%84%EC%84%A4%20%EC%8B%9C%EA%B0%84%EC%9D%98%20%EC%98%A4%EC%B9%B4%EB%A6%AC%EB%82%98',
+    desc:'젤다 시리즈 전체 타임라인의 결정적 분기점이자 역대 최고의 비디오게임 중 하나로 꼽히는 전설적인 작품. 소년 링크가 시간의 오카리나를 이용해 7년의 시간을 오가며 가논돌프와 싸웁니다. 이 작품의 엔딩 이후 젤다 세계의 역사가 세 갈래로 갈라지며, 현재 메인 시리즈 게임 총 19개의 스토리 배경이 이 분기에서 비롯됩니다.',
+    points:[
+      '7년의 시간 도약 — 마스터 소드를 뽑은 어린 링크가 7년 뒤 어른으로 깨어남. 그 사이 가논돌프가 하이럴을 완전히 정복',
+      '오카리나로 시간 조작 — 오카리나를 연주해 과거와 미래를 오가며 퍼즐을 해결하는 혁신적 시스템',
+      'Z주목(Z-targeting) 전투 시스템을 처음 도입 — 이후 모든 3D 액션 게임에 영향을 끼친 변혁',
+      '메타크리틱 99점 — 현재까지 역사상 가장 높은 평점을 기록한 비디오게임 중 하나',
+      '3개의 평행 타임라인 생성 — 용사 패배 / 어린이 / 어른 타임라인이 동시에 존재하게 됨'
+    ]
+  }
+];
+var DATA = {
+  p: [
+    { num:1, cls:'p', icon:'🗡️',
+      title:'신들의 트라이포스', en:'A Link to the Past (신들의 트라이포스)',
+      plat:'1991 · SNES / GBA', tag:'용사 패배 분기 ①',
+    namu:'https://namu.wiki/w/%EC%A0%A4%EB%8B%A4%EC%9D%98%20%EC%A0%84%EC%84%A4%20%EC%8B%A0%EB%93%A4%EC%9D%98%20%ED%8A%B8%EB%9D%BC%EC%9D%B4%ED%8F%AC%EC%8A%A4',
+      desc:'가논이 성역에 봉인된 수백 년 후의 하이럴. 왕의 충신이었던 마법사 아가님이 서서히 권력을 잡더니 왕을 폐위시키고, 성역에 봉인된 가논을 해방시키려 합니다. 링크는 빛의 세계(현실 하이럴)와 어둠의 세계(가논이 봉인된 다크월드)를 번갈아 오가며 가논을 처치합니다.',
+      points:[
+        '마스터 소드, 성역, 트라이포스, 7현자 등 이후 시리즈 전체에서 반복 등장하는 핵심 설정을 처음 정립한 작품',
+        '빛의 세계와 어둠의 세계를 자유롭게 오가는 "듀얼 월드" 시스템 — 같은 위치라도 두 세계에서 완전히 다른 모습',
+        '악역 가논이 단순 몬스터가 아닌 의지를 가진 존재로 처음 등장, 이후 시리즈 최고 악역으로 자리잡음',
+        '세컨드 퀘스트 없이도 분기 없는 단일 스토리로 완결감 있는 서사 구조 완성',
+        '2024년 Nintendo Switch Online에서 플레이 가능'
+      ] },
+    { num:2, cls:'p', icon:'🧱',
+      title:'신들의 트라이포스 2', en:'A Link Between Worlds (신들의 트라이포스 2)',
+      plat:'2013 · Nintendo 3DS', tag:'용사 패배 분기 ②',
+    namu:'https://namu.wiki/w/%EC%A0%A4%EB%8B%A4%EC%9D%98%20%EC%A0%84%EC%84%A4%20%EC%8B%A0%EB%93%A4%EC%9D%98%20%ED%8A%B8%EB%9D%BC%EC%9D%B4%ED%8F%AC%EC%8A%A4%202',
+      desc:'ALttP로부터 수 세대가 지난 하이럴. 마법사 유가가 7현자의 후손들을 그림으로 만들어 봉인하고, 같은 세계의 거울상인 로룰 왕국으로 끌고 갑니다. 로룰의 공주 힐다는 자국의 사라진 트라이포스를 되살리기 위해 유가와 손잡고 하이럴을 노립니다.',
+      points:[
+        '링크가 납작해져 벽 속에 들어가 2D 캐릭터처럼 이동하는 "벽합체" 시스템 — 완전히 새로운 공간 활용',
+        'ALttP 맵 구조를 그대로 재현하면서도 완전히 새로운 이야기 — 원작 팬에게 추억, 신규에게 새 게임',
+        '던전 순서를 플레이어가 자유롭게 선택 가능한 오픈 던전 구조',
+        '거울상 세계 로룰의 공주 힐다 — 단순 악역이 아닌 복잡한 동기를 가진 캐릭터로 호평',
+        '3DS 입체 화면을 활용한 깊이감 있는 연출'
+      ] },
+    { num:3, cls:'p', icon:'👥',
+      title:'트라이포스 삼총사', en:'Tri Force Heroes',
+      plat:'2015 · Nintendo 3DS', tag:'용사 패배 분기 ③',
+    namu:'https://namu.wiki/w/%EC%A0%A4%EB%8B%A4%EC%9D%98%20%EC%A0%84%EC%84%A4%20%ED%8A%B8%EB%9D%BC%EC%9D%B4%ED%8F%AC%EC%8A%A4%20%EC%82%BC%EC%B4%9D%EC%82%AC',
+      desc:'헤레마이트 왕국의 공주가 마녀의 저주로 괴상한 패션 의상을 입게 됩니다. 전설의 용사 삼총사만이 저주를 풀 수 있다는 예언에 따라, 링크가 다른 두 용사와 함께 왕국의 탑을 공략합니다. 2024년, 이 작품 직후 시열대가 지혜의 투영임이 공식 확인되었습니다.',
+      points:[
+        '3명의 링크가 서로를 들고 쌓아올리는 "토템" 시스템 — 협력 없이는 해결 불가능한 퍼즐',
+        '온라인·로컬 3인 협력 플레이 또는 1인 플레이 모두 지원',
+        '다양한 의상으로 능력을 커스터마이징 — 불 저항, 수영 속도 향상, 공격력 강화 등',
+        '주인공 링크의 의상이 초록색이 아닌 파란색 — 시리즈에서 거의 유일한 경우',
+        '2024년 11월 지혜의 투영이 이 작품 바로 다음 시열대로 공식 확인됨'
+      ] },
+    { num:4, cls:'p', icon:'✨',
+      title:'지혜의 투영 ✦ 최신작', en:'Echoes of Wisdom',
+      plat:'2024 · Nintendo Switch', tag:'용사 패배 분기 ④ · 2024 최신',
+    namu:'https://namu.wiki/w/%EC%A0%A4%EB%8B%A4%EC%9D%98%20%EC%A0%84%EC%84%A4%20%EC%A7%80%ED%98%9C%EC%9D%98%20%ED%88%AC%EC%98%81',
+      desc:'시리즈 38년 역사상 최초로 젤다 공주가 주인공으로 등장한 작품입니다. 링크가 가논과의 전투 중 하이럴 곳곳에 생겨난 수수께끼의 균열에 휘말려 사라지고, 젤다 공주가 직접 왕국을 구하러 나서는 이야기입니다.',
+      points:[
+        '주변 사물을 복사하는 투영(에코) 능력 — 침대, 바위, 물, 몬스터까지 모든 것을 복사해 활용',
+        '정해진 해법 없이 다양한 에코 조합으로 퍼즐 해결 — 창의적 접근이 핵심',
+        '링크의 분신으로 잠시 전투 모드 전환 가능 — 젤다 플레이와 링크 플레이의 차이가 명확',
+        '꿈꾸는 섬 리메이크 스튜디오 GREZZO의 첫 완전 신작, 플라스틱 미니어처 풍 아트 스타일',
+        '출시 5일 만에 258만 장 판매, 탑뷰 젤다 최고 기록 경신'
+      ] },
+    { num:5, cls:'p', icon:'🔮',
+      title:'이상한 나무열매 시리즈', en:'Oracle of Ages / Seasons (이상한 나무열매)',
+      plat:'2001 · Game Boy Color', tag:'용사 패배 분기 ⑤',
+    namu:'https://namu.wiki/w/%EC%A0%A4%EB%8B%A4%EC%9D%98%20%EC%A0%84%EC%84%A4%20%EC%9D%B4%EC%83%81%ED%95%9C%20%EB%82%98%EB%AC%B4%EC%97%B4%EB%A7%A4',
+      desc:'시간 조작의 "에이지스"와 계절 조작의 "시즌즈" 두 게임으로 구성된 페어 시리즈입니다. 각각 독립된 스토리지만, 한 게임을 클리어한 뒤 다른 게임에 연동 코드를 입력하면 두 이야기가 연결되어 진짜 최종 보스와 진엔딩이 해금됩니다.',
+      points:[
+        '에이지스: 시간 여행으로 과거·현재의 라브룬나 지방을 오가며 탐험',
+        '시즌즈: 마법 막대기로 봄·여름·가을·겨울을 자유롭게 바꿔 퍼즐 해결',
+        '연동 플레이 시 쌍둥이 마녀 트윈로바의 가논 부활 음모가 밝혀지는 숨겨진 스토리',
+        '캡콤 개발, GBC 하드웨어 한계를 뛰어넘는 완성도와 볼륨으로 호평',
+        '링크의 모험 이후 사라졌던 가논을 다시 등장시키는 중요한 스토리 연결고리'
+      ] },
+    { num:6, cls:'p', icon:'🏝️',
+      title:'꿈꾸는 섬', en:"Link's Awakening",
+      plat:'1993 · GB / 2019 리메이크 · Switch', tag:'용사 패배 분기 ⑥',
+      namu:'https://namu.wiki/w/%EC%A0%A4%EB%8B%A4%EC%9D%98%20%EC%A0%84%EC%84%A4%20%EA%BF%88%EA%BE%B8%EB%8A%94%20%EC%84%AC',
+      desc:'훈련 항해 중 태풍으로 난파된 링크가 코홀린트 섬에서 깨어납니다. 섬을 탈출하기 위해서는 바람의 물고기를 깨우는 8개의 악기를 모아야 한다는 수수께끼의 편지를 따라 모험이 시작됩니다.',
+      points:[
+        '하이럴, 가논, 트라이포스 — 시리즈 3대 요소가 모두 등장하지 않는 독립적 세계관',
+        '마지막에 이 모험 전체가 바람의 물고기의 꿈이었음이 밝혀지는 충격적 반전 엔딩',
+        '꿈속 세계라는 설정 덕에 마리오, 커비 등 닌텐도 다른 시리즈 캐릭터들이 특별 출연',
+        '2019년 Switch 리메이크에서 클레이 아트 스타일의 아기자기한 비주얼로 완전히 재탄생',
+        '원작 1993년 GB 버전은 게임보이 역대 최고 명작 중 하나로 평가'
+      ] },
+    { num:7, cls:'p', icon:'🏰',
+      title:'젤다의 전설', en:'The Legend of Zelda',
+      plat:'1986 · NES (패밀리 컴퓨터)', tag:'용사 패배 분기 ⑦',
+    namu:'https://namu.wiki/w/%EC%A0%A4%EB%8B%A4%EC%9D%98%20%EC%A0%84%EC%84%A4',
+      desc:'1986년 발매된 시리즈의 원점. 마왕 가논이 트라이포스를 탈취하고 젤다 공주를 납치하자, 소년 링크가 9개의 던전을 공략하고 가논을 쓰러뜨려 트라이포스를 되찾습니다.',
+      points:[
+        '오픈월드 탐험의 선구자 — 지도도 힌트도 없이 스스로 길을 찾아야 하는 당시 게임에서 없던 경험',
+        '세컨드 퀘스트 — 클리어 후 던전 배치가 완전히 바뀌는 뉴게임+의 원조 개념',
+        '서양 출시 후 폭발적 반응 — 미국에서 650만 장 이상 판매, 닌텐도의 세계 진출을 이끔',
+        '이 작품의 젤다 공주는 스카이워드 소드의 젤다와 별개의 환생 — 같은 이름을 쓰는 전통의 시작',
+        '미야모토 시게루가 숲에서 혼자 탐험하던 어린 시절의 기억을 담아 만든 게임'
+      ] },
+    { num:8, cls:'p', icon:'💎',
+      title:'링크의 모험', en:'The Adventure of Link',
+      plat:'1987 · NES (패밀리 컴퓨터)', tag:'용사 패배 분기 ⑧ (최종)',
+    namu:'https://namu.wiki/w/%EC%A0%A4%EB%8B%A4%EC%9D%98%20%EC%A0%84%EC%84%A4%20II%20%EB%A7%81%ED%81%AC%EC%9D%98%20%EB%AA%A8%ED%97%98',
+      desc:'16번째 생일을 맞은 링크의 손등에 저주의 문양이 나타납니다. 전설에 따르면 트라이포스 용기를 완성해야만 수백 년간 잠들어 있는 최초의 젤다 공주를 깨울 수 있습니다. 이 작품에서 잠들었던 젤다 공주가 깨어나며 용사 패배 타임라인이 완전히 마무리됩니다.',
+      points:[
+        '시리즈 유일의 횡스크롤 RPG 방식 — 오버월드와 사이드스크롤 전투 화면을 오가는 구성',
+        '경험치로 체력·마법·공격력을 성장시키는 본격 RPG 요소 도입',
+        '게임오버 화면에 가논의 실루엣 — 링크의 피로 가논이 다시 부활할 수 있다는 긴장감',
+        '1편의 가논이 처치된 상태를 이어받는 직접적 속편 관계',
+        '용사 패배 타임라인의 완결 — 잠든 젤다가 깨어나고 트라이포스가 완성되며 평화 회복'
+      ] }
+  ],
+  c: [
+    { num:1, cls:'c', icon:'🌕',
+      title:'무쥬라의 가면', en:"Majora's Mask",
+      plat:'2000 · N64 / 2015 3DS 리마스터', tag:'어린이 분기 ①',
+      namu:'https://namu.wiki/w/%EC%A0%A4%EB%8B%A4%EC%9D%98%20%EC%A0%84%EC%84%A4%20%EB%AC%B4%EC%A5%AC%EB%9D%BC%EC%9D%98%20%EA%B0%80%EB%A9%B4',
+      desc:'시간의 오카리나 직속 후속작. 스컬 키드에게 오카리나와 말을 빼앗긴 어린 링크가 이상한 세계 테르미나로 떨어집니다. 무쥬라의 가면을 쓴 스컬 키드가 달을 지구에 충돌시키려 하며, 링크에게는 단 3일이 주어집니다.',
+      points:[
+        '3일 타임루프 시스템 — 시간이 다 되면 오카리나로 첫째 날 아침으로 되돌아감. 얻은 능력과 지식은 유지',
+        '죽음, 이별, 슬픔 — 시리즈에서 가장 무겁고 철학적인 주제 의식. 각 등장인물마다 3일 사이에 완결되는 자신만의 이야기',
+        '탈을 쓰면 완전히 다른 종족으로 변신 — 데쿠, 고론, 조라 각각 독자적인 플레이 스타일',
+        '스컬 키드는 단순한 악당이 아닌 고독하고 상처받은 아이 — 가면이 그 슬픔을 이용한 것',
+        '오카리나의 1년 만에 개발 완성, 감성적 완성도로 지금도 꾸준히 재평가 받는 걸작'
+      ] },
+    { num:2, cls:'c', icon:'🐺',
+      title:'황혼의 공주', en:'Twilight Princess',
+      plat:'2006 · Wii / GCN / 2016 HD · Wii U', tag:'어린이 분기 ②',
+    namu:'https://namu.wiki/w/%EC%A0%A4%EB%8B%A4%EC%9D%98%20%EC%A0%84%EC%84%A4%20%ED%99%A9%ED%98%BC%EC%9D%98%20%EA%B3%B5%EC%A3%BC',
+      desc:'처형 직전 트라이포스의 힘으로 살아남은 가논돌프가 황혼 세계를 통해 하이럴 전체를 황혼으로 뒤덮습니다. 황혼 속으로 끌려 들어간 링크는 늑대로 변신하게 되고, 황혼 족의 공주 미드나와 함께 두 세계를 넘나들며 싸웁니다.',
+      points:[
+        '인간 형태와 늑대 형태를 자유롭게 전환 — 각각 다른 능력과 감각(냄새 추적, 정령 감지)으로 퍼즐 해결',
+        '황혼 족 공주 미드나 — 처음에는 링크를 이용하려 하지만 이야기가 진행되며 가장 인간적인 파트너로 성장. 시리즈 최고 조연',
+        '가논돌프의 진짜 야망과 비극적 최후 — 단순 악당을 넘어 자신의 신념을 가진 존재로 묘사',
+        'Wii 런칭 타이틀로 출시, Wii 리모컨 모션 조작을 검 싸움에 적용',
+        '어두운 세계관, 무게감 있는 연출, 방대한 볼륨으로 시리즈 팬들의 최애작 1위에 자주 오름'
+      ] },
+    { num:3, cls:'c', icon:'⚔️',
+      title:'포 소드 어드벤처스', en:'Four Swords Adventures',
+      plat:'2004 · GameCube', tag:'어린이 분기 ③ (최종)',
+    namu:'https://namu.wiki/w/%EC%A0%A4%EB%8B%A4%EC%9D%98%20%EC%A0%84%EC%84%A4%20%ED%8F%AC%20%EC%86%8C%EB%93%9C%20%EC%96%B4%EB%93%9C%EB%B2%A4%EC%B2%98%EC%8A%A4',
+      desc:'어린이 타임라인의 마지막 작품. 오래된 예언에 따르면 겔드족에서 100년마다 남자아이가 태어나는데, 그 아이는 힘을 추구하다 마왕이 됩니다. 새로 태어난 가논돌프가 다크 미러를 훔쳐 마군을 소환하고 하이럴을 혼란에 빠트립니다.',
+      points:[
+        '포 소드로 4명으로 분열 — 4명이 협력해 퍼즐을 해결하는 멀티플레이. GBA 최대 4대와 GCN 연결',
+        '이 작품의 가논돌프는 오카리나의 가논돌프와 별개의 새로운 환생 — 동일한 저주의 순환이 반복',
+        '가논돌프가 마왕이 되는 과정이 직접 묘사 — 어린이 타임라인 내 이야기 연속성 증명',
+        '겔드족의 100년 법칙 설정 — 오카리나와의 연결고리',
+        '어린이 타임라인의 완결 — 이 봉인 이후 이 분기에서는 더 이상 새 이야기가 공식 확인되지 않음'
+      ] }
+  ],
+  a: [
+    { num:1, cls:'a', icon:'⛵',
+      title:'바람의 지휘봉', en:'The Wind Waker',
+      plat:'2002 · GCN / 2013 HD · Wii U', tag:'어른 분기 ①',
+    namu:'https://namu.wiki/w/%EC%A0%A4%EB%8B%A4%EC%9D%98%20%EC%A0%84%EC%84%A4%20%EB%B0%94%EB%9E%8C%EC%9D%98%20%EC%A7%80%ED%9C%98%EB%B4%89',
+      desc:'오카리나 이후 수백 년이 지나 가논이 다시 부활 조짐을 보이지만 용사가 나타나지 않자, 여신들이 하이럴 전체를 대홍수로 수몰시킵니다. 그로부터 다시 수백 년이 지난 세계 — 하이럴은 이제 깊은 바다 속에 잠들어 있고, 수면 위에는 섬들만 남아 있습니다.',
+      points:[
+        '셀 쉐이딩 비주얼 — 발매 당시 논란이 있었으나 현재는 역대 가장 아름다운 젤다 그래픽 중 하나로 재평가',
+        '광활한 대양 항해 — 바다 지도를 펼치고 섬들을 탐험하는 자유로운 모험감',
+        '가논돌프의 진심 — 단지 하이럴의 바람을 느끼고 싶었을 뿐이라는 대사. 복잡한 인간성 묘사',
+        '현 하이럴 왕이 세계를 홍수로 잠재우고 가논과 함께 봉인되는 결말 — 어른 타임라인 기존 하이럴 역사 종결',
+        '새로운 하이럴을 향한 여정으로 끝남 — 이후 몽환의 모래시계, 대지의 기적으로 이어짐'
+      ] },
+    { num:2, cls:'a', icon:'⏳',
+      title:'몽환의 모래시계', en:'Phantom Hourglass',
+      plat:'2007 · Nintendo DS', tag:'어른 분기 ②',
+    namu:'https://namu.wiki/w/%EC%A0%A4%EB%8B%A4%EC%9D%98%20%EC%A0%84%EC%84%A4%20%EB%AA%BD%ED%99%98%EC%9D%98%20%EB%AA%A8%EB%9E%98%EC%8B%9C%EA%B3%84',
+      desc:'바람의 지휘봉 직속 후속작. 링크와 테트라가 새 하이럴을 찾아 항해하던 중, 유령의 배를 조사하던 테트라가 납치됩니다. 링크는 불가사의한 세계로 빠져들어 요정 시엘라와 함께 유령의 배를 추적합니다.',
+      points:[
+        '터치스크린 전용 조작 — 이동, 공격, 퍼즐까지 모든 것을 터치펜으로 해결. 당시로선 파격적인 실험',
+        '지도에 직접 메모 — DS 화면에 직접 펜으로 메모를 적어 퍼즐 단서를 기록하는 혁신적 방식',
+        '몽환의 모래시계 — 오션킹 사원에서 사용할 수 있는 시간이 제한되어 매 방문마다 더 빠르고 효율적으로 진행해야 함',
+        '유령 병사 팬텀 — 사원을 순찰하는 퇴치 불가 적. 그림자에 숨어 피해야 하는 긴장감',
+        '바람의 지휘봉의 분위기를 이어받은 따뜻하고 유머러스한 톤'
+      ] },
+    { num:3, cls:'a', icon:'🚂',
+      title:'대지의 기적', en:'Spirit Tracks',
+      plat:'2009 · Nintendo DS', tag:'어른 분기 ③ (최종)',
+    namu:'https://namu.wiki/w/%EC%A0%A4%EB%8B%A4%EC%9D%98%20%EC%A0%84%EC%84%A4%20%EB%8C%80%EC%A7%80%EC%9D%98%20%EA%B8%B0%EC%A0%81',
+      desc:'몽환의 모래시계 이후 건설된 새로운 하이럴. 이 세계에는 기차가 달리는 스피릿 트랙이 중요한 역할을 합니다. 악마 말라더스가 젤다 공주의 육체를 빼앗고 봉인에서 탈출하려 합니다. 영혼만 남은 젤다 공주가 링크와 함께 행동하며 스피릿 트랙을 복원해 말라더스를 막아야 합니다.',
+      points:[
+        '젤다가 영혼 상태로 링크 옆에서 직접 행동 — 링크 몸 안에 빙의하거나 팬텀(갑옷 병사)을 조작하는 듀오 플레이',
+        '링크와 젤다의 파트너십 — 시리즈 전 작품 중 두 사람의 관계가 가장 자연스럽고 따뜻하게 묘사됨',
+        '기차 운전으로 세계 이동 — 선로를 따라 기차를 직접 운전. 도중에 적을 대포로 격파해야 함',
+        '대지의 기적이 악마 봉인의 열쇠 — 선로가 모두 복원되어야 최종 봉인 가능',
+        '어른 타임라인의 최종 마무리 작품 — 새 하이럴의 역사가 이 작품에서 일단락됨'
+      ] }
+  ],
+  bc: [
+    { num:1, cls:'bc', icon:'🌄',
+      title:'브레스 오브 더 와일드', en:'Breath of the Wild (야생의 숨결)',
+      plat:'2017 · Nintendo Switch / Wii U', tag:'타임라인 배치 미확정',
+    namu:'https://namu.wiki/w/%EC%A0%A4%EB%8B%A4%EC%9D%98%20%EC%A0%84%EC%84%A4%20%EB%B8%8C%EB%A0%88%EC%8A%A4%20%EC%98%A4%EB%B8%8C%20%EB%8D%94%20%EC%99%80%EC%9D%BC%EB%93%9C',
+      desc:'100년 전의 재앙 이후 잠들었다 깨어난 링크가 자신의 기억을 되찾으며 광활한 하이럴을 탐험하는 오픈월드 대작. 어디서든 등반하고, 무엇이든 만들고, 어디든 먼저 갈 수 있는 전례 없는 자유도로 오픈월드 장르 전체를 재정의한 게임입니다.',
+      points:[
+        '물리 엔진 기반 자유 — 금속은 번개를 맞고, 나무는 불이 붙고, 경사면에서는 미끄러짐. 환경이 실제처럼 반응',
+        '가논 대신 재앙 가논 — 100년 전 이미 링크와 젤다가 막으려 했지만 실패한 존재. 젤다가 홀로 봉인 유지 중',
+        '4개 신수(신의 짐승)와 4명의 챔피언 — 100년 전 가논에게 당한 동료들의 이야기',
+        '코록 씨앗 900개, 광활한 하이럴, 수백 개의 사당 — 플레이어가 스스로 발견하는 탐험의 재미',
+        '2900만 장 이상 판매(2024년), 수십 개 GOTY 수상 — 역대 게임 최상위권',
+        '아오누마: 타임라인은 세 분기 어딘가의 끝. 어느 분기인지는 플레이어의 상상에 맡긴다'
+      ] },
+    { num:2, cls:'bc', icon:'👁️',
+      title:'티어스 오브 더 킹덤', en:'Tears of the Kingdom (왕국의 눈물)',
+      plat:'2023 · Nintendo Switch', tag:'야숨 직속 후속작 · 배치 미확정',
+    namu:'https://namu.wiki/w/%EC%A0%A4%EB%8B%A4%EC%9D%98%20%EC%A0%84%EC%84%A4%20%ED%8B%B0%EC%96%B4%EC%8A%A4%20%EC%98%A4%EB%B8%8C%20%EB%8D%94%20%ED%82%B9%EB%8D%A4',
+      desc:'야생의 숨결 이후 재앙을 극복하고 재건 중인 하이럴. 링크와 젤다가 하이럴 성 지하를 조사하던 중 고대에 봉인된 가논돌프와 그를 봉인한 고대 왕 라울을 발견합니다. 봉인이 풀리는 순간 젤다가 수천 년 전 라울의 시대로 시간이동하며, 알려지지 않았던 하이럴 왕국 건국의 역사가 밝혀집니다.',
+      points:[
+        '울트라 핸드와 스크래빌드 — 사물을 자유롭게 합체시켜 탈것, 무기, 기계를 직접 만드는 제작 시스템',
+        '지상, 하이럴 지하동굴, 하늘섬 3층 구조 — 야숨의 3배에 달하는 탐험 범위',
+        '젤다의 시간이동 — 고대 왕 라울과 소니아의 봉인전쟁이 현재 이야기와 평행하게 진행됨',
+        '드래곤이 된 젤다 — 시간의 눈물을 손에 쥐고 드래곤이 되어 마스터 소드를 치료하는 충격적 반전',
+        '발매 3일 만에 1000만 장, 2023년 동안 2000만 장 달성 — 역대 게임 최고 속도 중 하나',
+        '왕눈의 봉인전쟁 설정은 기존 3개 분기 어디에도 완전히 들어맞지 않아 타임라인 논쟁 현재 진행형'
+      ] }
+  ]
+};
+
+function showTab(id, el) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('on'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
+  document.getElementById('panel-' + id).classList.add('on');
+  el.classList.add('on');
+  window.scrollTo({top: 0, behavior: 'instant'});
+}
+
+function goTab(id) {
+  var tabs = document.querySelectorAll('.tab');
+  var map = {tl:0, cmn:1, p:2, c:3, a:4, bc:5};
+  showTab(id, tabs[map[id]]);
+}
+
+function buildMCard(g) {
+  var dot = 'dot-' + g.cls;
+  var tagCls = 'mt-' + g.cls;
+  var pts = g.points.map(p =>
+    '<div class="mcard-pt"><div class="mcard-dot ' + dot + '"></div><span>' + p + '</span></div>'
+  ).join('');
+  var namu = g.namu
+    ? '<a class="mcard-namu" href="' + g.namu + '" target="_blank" rel="noopener" onclick="event.stopPropagation()">나무위키에서 보기 →</a>'
+    : '';
+  return '<div class="mcard" id="mc-' + g.cls + '-' + (g.num-1) + '">'
+    + namu
+    + '<div class="mcard-head" onclick="toggleMCard(this.parentElement)">'
+    + '<span class="mcard-icon">' + g.icon + '</span>'
+    + '<div class="mcard-info">'
+    + '<span class="mcard-title">' + g.title + '</span>'
+    + '<span class="mcard-en">' + g.en + '</span>'
+    + '</div>'
+    + '<span class="mcard-toggle">▼</span>'
+    + '</div>'
+    + '<div class="mcard-tags">'
+    + '<span class="mcard-plat">' + g.plat + '</span>'
+    + '<span class="mcard-tag ' + tagCls + '">' + g.tag + '</span>'
+    + '</div>'
+    + '<div class="mcard-body">'
+    + '<div class="mcard-desc">' + g.desc + '</div>'
+    + '<div class="mcard-pts-title">핵심 포인트</div>'
+    + '<div class="mcard-pts">' + pts + '</div>'
+    + '</div>'
+    + '</div>';
+}
+
+function toggleMCard(el) { el.classList.toggle('open'); }
+
+function renderAll() {
+  document.getElementById('cards-cmn').innerHTML = CMN_DATA.map(buildMCard).join('');
+  document.getElementById('cards-p').innerHTML = DATA.p.map(buildMCard).join('');
+  document.getElementById('cards-c').innerHTML = DATA.c.map(buildMCard).join('');
+  document.getElementById('cards-a').innerHTML = DATA.a.map(buildMCard).join('');
+  document.getElementById('cards-bc').innerHTML = DATA.bc.map(buildMCard).join('');
+}
+
+window.addEventListener('scroll', function() {
+  var btn = document.getElementById('scroll-top');
+  if (window.scrollY > 300) btn.classList.add('show');
+  else btn.classList.remove('show');
+});
+
+renderAll();
+</script>
+</body>
+</html>
